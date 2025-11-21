@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Chatbot — Portfolio</title>
+
+  <style>
+    :root{
+      --bg-1: linear-gradient(135deg,#0f1724,#111827);
+      --glass: rgba(255,255,255,0.04);
+      --muted: rgba(255,255,255,0.7);
+      --accent: #4a80ff;
+      --you-bg: #4a80ff;
+      --bot-bg: rgba(255,255,255,0.08);
+      --radius: 18px;
+    }
+
+    /* Light theme overrides */
+    :root[data-theme="light"]{
+      --bg-1: linear-gradient(135deg,#f6f8fb,#e9eef8);
+      --glass: rgba(0,0,0,0.04);
+      --muted: rgba(0,0,0,0.66);
+      --accent: #1f6feb;
+      --you-bg: #1f6feb;
+      --bot-bg: rgba(0,0,0,0.06);
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg-1);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      box-sizing:border-box;
+    }
+
+    .chat-wrap{
+      width:100%;
+      max-width:940px;
+      height: 86vh;
+      max-height:900px;
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:20px;
+    }
+
+    /* Sidebar (can be minimal for portfolio) */
+    .sidebar{
+      background: var(--glass);
+      border-radius: var(--radius);
+      padding:16px;
+      border:1px solid rgba(255,255,255,0.06);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      min-height: 480px;
+      overflow:hidden;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .brand .logo{
+      width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7bb7ff);
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:white;
+      box-shadow: 0 6px 20px rgba(74,128,255,0.15);
+      font-size:18px;
+    }
+    .brand h2{font-size:16px;margin:0}
+    .brand p{font-size:12px;margin:0;color:var(--muted)}
+
+    .controls{
+      margin-top:8px; display:flex; gap:8px; align-items:center;
+    }
+    .btn{
+      background:transparent;border:1px solid rgba(255,255,255,0.06); padding:8px 10px;border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px;
+    }
+    .btn.primary{background:var(--accent);border:none;color:white;}
+
+    .conversations{
+      margin-top:10px;flex:1;overflow:auto;padding-right:6px;
+    }
+    .conv{
+      padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer;margin-bottom:8px;font-size:14px;
+    }
+    .conv small{display:block;color:var(--muted);font-size:12px;margin-top:6px}
+
+    /* Chat area */
+    .chat-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,0.06);
+      display:flex;flex-direction:column;overflow:hidden;box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+      min-height:480px;
+    }
+
+    .chat-header{
+      display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+    .chat-header .left{display:flex;align-items:center;gap:12px}
+    .avatar{
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7bb7ff);
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:16px;
+    }
+    .chat-title h3{margin:0;font-size:15px}
+    .chat-title p{margin:0;font-size:12px;color:var(--muted)}
+
+    .chat-body{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+    .bubble{max-width:78%;padding:12px 14px;border-radius:14px;font-size:15px;line-height:1.45}
+    .bubble.bot{background:var(--bot-bg);align-self:flex-start;border-bottom-left-radius:6px;color: #fff}
+    .bubble.you{background:var(--you-bg);align-self:flex-end;color:#fff;border-bottom-right-radius:6px}
+    .meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
+
+    /* avatar small inside message */
+    .msg-row{display:flex;gap:10px;align-items:flex-end}
+    .msg-row.bot .bubble{margin-left:6px}
+    .msg-row.you{justify-content:flex-end}
+
+    /* typing & spinner */
+    .typing{display:inline-flex;gap:6px;align-items:center}
+    .dot{width:7px;height:7px;border-radius:50%;background:#fff;opacity:0.25;animation:blink 1.2s infinite}
+    .dot.d1{animation-delay:0s}.dot.d2{animation-delay:.15s}.dot.d3{animation-delay:.3s}
+    @keyframes blink{0%{opacity:.15}50%{opacity:1}100%{opacity:.15}}
+
+    /* input area */
+    .input-area{display:flex;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,0.03);align-items:end}
+    .input{
+      flex:1;display:flex;gap:10px;align-items:end;
+      background:transparent;padding:8px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);
+    }
+    textarea#message{
+      width:100%;min-height:44px;max-height:140px;padding:10px;border:none;resize:none;background:transparent;color:inherit;font-size:15px;outline:none;
+    }
+    .right-actions{display:flex;gap:8px;align-items:center}
+    .icon-btn{width:44px;height:44px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+    /* small helpers */
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:13px}
+    .hidden{display:none}
+
+    /* responsive */
+    @media (max-width:900px){
+      .chat-wrap{grid-template-columns:1fr;max-width:520px}
+      .sidebar{display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-wrap">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="sidebar">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h2>Portfolio Chat</h2>
+          <p class="small muted">Demo assistant — powered locally</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="newConv" class="btn">New</button>
+        <button id="themeToggle" class="btn">Toggle Theme</button>
+        <button id="clearAll" class="btn">Clear</button>
+      </div>
+
+      <div class="conversations" id="conversations"></div>
+      <div class="muted small">Saved locally in your browser</div>
+    </aside>
+
+    <!-- CHAT -->
+    <section class="chat-card" aria-label="chat">
+      <div class="chat-header">
+        <div class="left">
+          <div class="avatar">B</div>
+          <div class="chat-title">
+            <h3>AI Chatbot</h3>
+            <p class="small muted">Try voice input (🎤) or type below</p>
+          </div>
+        </div>
+        <div class="right small muted" id="quotaStatus">Local demo</div>
+      </div>
+
+      <div class="chat-body" id="chatbox" role="log" aria-live="polite"></div>
+
+      <div class="input-area">
+        <div class="input" role="textbox" aria-label="message box">
+          <textarea id="message" placeholder="Ask me something..." rows="1"></textarea>
+        </div>
+
+        <div class="right-actions">
+          <button id="micBtn" title="Voice input" class="icon-btn">🎙</button>
+          <button id="sendBtn" class="icon-btn" title="Send">➤</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ----------------------
+   Configuration & state
+   ---------------------- */
+const chatbox = document.getElementById('chatbox');
+const messageEl = document.getElementById('message');
+const sendBtn = document.getElementById('sendBtn');
+const micBtn = document.getElementById('micBtn');
+const conversationsEl = document.getElementById('conversations');
+const newConvBtn = document.getElementById('newConv');
+const clearAllBtn = document.getElementById('clearAll');
+const themeToggle = document.getElementById('themeToggle');
+
+let isRecording = false;
+let recognition = null;
+let audioCtx = null;
+let currentConversation = { id: Date.now(), title: "New chat", messages: [] };
+
+/* --------- Utilities ---------- */
+function saveConversations() {
+  const store = JSON.parse(localStorage.getItem('chats_v1') || '[]');
+  // update or add current
+  const others = store.filter(c => c.id !== currentConversation.id);
+  others.unshift(currentConversation);
+  localStorage.setItem('chats_v1', JSON.stringify(others.slice(0,20)));
+  renderConversations();
+}
+
+function loadConversations() {
+  const store = JSON.parse(localStorage.getItem('chats_v1') || '[]');
+  if (store.length) {
+    currentConversation = store[0];
+  } else {
+    currentConversation = { id: Date.now(), title: "New chat", messages: [] };
+  }
+  renderConversations();
+  renderChat();
+}
+
+function renderConversations(){
+  const store = JSON.parse(localStorage.getItem('chats_v1') || '[]');
+  conversationsEl.innerHTML = '';
+  store.forEach(conv => {
+    const el = document.createElement('div');
+    el.className = 'conv';
+    el.textContent = conv.title || conv.messages.slice(-1)[0]?.text?.slice(0,40) || "New chat";
+    el.onclick = () => { currentConversation = conv; renderChat(); };
+    conversationsEl.appendChild(el);
+  });
+}
+
+function renderChat(){
+  chatbox.innerHTML = '';
+  for (const m of currentConversation.messages || []) {
+    appendMessageToUI(m.text, m.role, false);
+  }
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+/* ------------- UI helpers -------------- */
+function appendMessageToUI(text, role, save=true){
+  const row = document.createElement('div');
+  row.className = role === 'user' ? 'msg-row you' : 'msg-row bot';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (role === 'user' ? 'you' : 'bot');
+  bubble.textContent = text;
+
+  if (role === 'user'){
+    row.classList.add('you');
+    row.appendChild(bubble);
+  } else {
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.style.width = '36px'; avatar.style.height='36px'; avatar.style.fontSize='14px';
+    avatar.textContent = 'B';
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+  }
+
+  chatbox.appendChild(row);
+  chatbox.scrollTop = chatbox.scrollHeight;
+
+  if (save){
+    currentConversation.messages = currentConversation.messages || [];
+    currentConversation.messages.push({ role: role === 'user' ? 'user' : 'bot', text });
+    if (currentConversation.messages.length > 200) currentConversation.messages.shift();
+    saveConversations();
+  }
+}
+
+/* --------- Typing + spinner + sound ---------- */
+function showTyping(){
+  const t = document.createElement('div');
+  t.className = 'bubble bot typing';
+  t.innerHTML = '<div class="typing"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>';
+  t.id = 'typing';
+  const row = document.createElement('div'); row.className='msg-row bot';
+  const avatar = document.createElement('div'); avatar.className='avatar'; avatar.style.width='36px';avatar.style.height='36px';avatar.style.fontSize='14px'; avatar.textContent='B';
+  row.appendChild(avatar); row.appendChild(t);
+  chatbox.appendChild(row);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+function removeTyping(){ const el = document.getElementById('typing'); if(el) el.remove(); }
+
+/* simple typing sound using WebAudio */
+function playTypingSound(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 800;
+    g.gain.value = 0.03;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(()=>{ o.stop(); }, 60);
+  }catch(e){}
+}
+
+/* ------------- Voice input (Web Speech API) -------------- */
+function initSpeech(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) {
+    micBtn.title = "Voice input not supported";
+    micBtn.style.opacity = 0.6;
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.onresult = (evt) => {
+    const text = evt.results[0][0].transcript;
+    messageEl.value = text;
+    autoResize();
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.textContent = '🎙';
+    micBtn.style.borderColor = '';
+  };
+}
+
+micBtn.onclick = () => {
+  if(!recognition) return;
+  if(isRecording){
+    recognition.stop();
+  }else{
+    try{ recognition.start(); isRecording=true; micBtn.textContent='⏺'; micBtn.style.borderColor = 'var(--accent)'; }catch(e){}
+  }
+};
+
+/* --------- message send -------------- */
+function autoResize(){
+  messageEl.style.height = 'auto';
+  messageEl.style.height = Math.min(140, messageEl.scrollHeight) + 'px';
+}
+messageEl.addEventListener('input', autoResize);
+
+async function sendMessage(){
+  const text = messageEl.value.trim();
+  if(!text) return;
+  appendMessageToUI(text, 'user', true);
+  messageEl.value = ''; autoResize();
+
+  // UI feedback
+  showTyping();
+  playTypingSound();
+
+  try{
+    const resp = await fetch('/api/chat/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await resp.json();
+    removeTyping();
+    if(resp.ok){
+      appendMessageToUI(data.reply || "(no reply)", 'bot', true);
+    } else {
+      appendMessageToUI("Error: "+ (data.error || resp.statusText), 'bot', true);
+    }
+  }catch(err){
+    removeTyping();
+    appendMessageToUI("Network error. Make sure backend is running.", 'bot', true);
+  }
+}
+
+sendBtn.onclick = sendMessage;
+sendBtn.addEventListener('keypress', (e)=>{ if(e.key==='Enter') sendMessage(); });
+messageEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
+/* ------------- conversation controls -------------- */
+newConvBtn.onclick = () => {
+  currentConversation = { id: Date.now(), title: "New chat", messages: [] };
+  renderChat();
+  saveConversations();
+};
+clearAllBtn.onclick = ()=>{
+  if(confirm("Clear all saved conversations? This is local only.")){
+    localStorage.removeItem('chats_v1');
+    currentConversation = { id: Date.now(), title: "New chat", messages: [] };
+    renderConversations(); renderChat();
+  }
+};
+
+/* ------------- Theme toggle -------------- */
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('chat_theme', theme);
+}
+themeToggle.onclick = ()=>{
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+};
+(function(){
+  const saved = localStorage.getItem('chat_theme') || 'dark';
+  applyTheme(saved);
+})();
+
+/* ---------- Initial load ---------- */
+initSpeech();
+loadConversations();
+
+/* ---------- Show quota/local status (optional) ---------- */
+document.getElementById('quotaStatus').textContent = 'Local demo • saved in browser';
+
+</script>
+</body>
+</html>
