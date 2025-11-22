@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env locally (safe, ignored in Git)
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -11,12 +13,15 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-default-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
+ALLOWED_HOSTS = ['portfolio_app.onrender.com', '127.0.0.1', 'localhost']
 
 # Add your deployed Render URL here
 ALLOWED_HOSTS = ['portfolio_app.onrender.com']
 
 # OpenAI API key from environment variable
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY not set! Add it in .env for local or in Render environment variables.")
 
 # Application definition
 INSTALLED_APPS = [
