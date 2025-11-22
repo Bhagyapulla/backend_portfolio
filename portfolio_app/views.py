@@ -18,6 +18,13 @@ class ChatBotView(APIView):
         if not question:
             return Response({"error": "No message sent."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Initialize Groq client inside the view
+        api_key = settings.GROQ_API_KEY
+        if not api_key:
+            return Response({"error": "GROQ_API_KEY not set in environment!"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        client = Groq(api_key=api_key)
+
         try:
             response = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
