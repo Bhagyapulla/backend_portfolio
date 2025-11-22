@@ -16,7 +16,9 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = ['portfolio_app.onrender.com', '127.0.0.1', 'localhost']
 
 # Add your deployed Render URL here
-ALLOWED_HOSTS = ['portfolio_app.onrender.com']
+ALLOWED_HOSTS = ['backend-portfolio-1-2nuq.onrender.com',
+    '127.0.0.1',
+    'localhost']
 
 # OpenAI API key from environment variable
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
